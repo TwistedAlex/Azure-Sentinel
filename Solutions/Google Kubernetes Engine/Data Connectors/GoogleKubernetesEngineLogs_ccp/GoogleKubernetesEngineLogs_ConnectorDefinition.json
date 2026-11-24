@@ -150,7 +150,7 @@
             {
               "type": "Markdown",
               "parameters": {
-                "content": "#### 3. Connect new collectors \nTo enable GKE Logs for Microsoft Sentinel, click the **Add new collector** button, fill in the required information in the context pane, and click **Connect**."
+                "content": "#### 3. Connect one collector per Pub/Sub subscription\nOne collector routes logs to all six GKE tables. If upgrading from the six-collector configuration, save the connection settings and disconnect all existing GKE collectors for this subscription before connecting the replacement. Keep the GCP subscription and topic in place so messages can queue during the switch. Click **Add new collector**, enter the settings, and click **Connect** once."
               }
             },
             {
@@ -158,28 +158,8 @@
               "parameters": {
                 "collectors": [
                   {
-                    "name": "Audit Collector",
+                    "name": "GKE Logs Collector",
                     "tableName": "GKEAudit"
-                  },
-                  {
-                    "name": "API Server Collector",
-                    "tableName": "GKEAPIServer"
-                  },
-                  {
-                    "name": "Scheduler Collector",
-                    "tableName": "GKEScheduler"
-                  },
-                  {
-                    "name": "Controller Manager Collector",
-                    "tableName": "GKEControllerManager"
-                  },
-                  {
-                    "name": "HPA Decision Collector",
-                    "tableName": "GKEHPADecision"
-                  },
-                  {
-                    "name": "Application Collector",
-                    "tableName": "GKEApplication"
                   }
                 ]
               }
