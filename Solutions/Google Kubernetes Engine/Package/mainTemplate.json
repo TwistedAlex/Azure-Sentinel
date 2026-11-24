@@ -41,17 +41,24 @@
       "metadata": {
         "description": "subscription id where Microsoft Sentinel is setup"
       }
+    },
+    "DeployDataConnector": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Deploy the data connectors carried by this solution, together with their metadata and catalog entries (ContentKind DataConnector, ResourceDataConnector and DataType)."
+      }
     }
   },
   "variables": {
     "email": "support@microsoft.com",
     "_email": "[variables('email')]",
     "_solutionName": "Google Kubernetes Engine",
-    "_solutionVersion": "3.0.2",
+    "_solutionVersion": "3.2.2",
     "solutionId": "azuresentinel.azure-sentinel-solution-gkelogs-api",
     "_solutionId": "[variables('solutionId')]",
     "workspaceResourceId": "[resourceId('microsoft.OperationalInsights/Workspaces', parameters('workspace'))]",
-    "dataConnectorCCPVersion": "3.0.2",
+    "dataConnectorCCPVersion": "3.2.2",
     "_dataConnectorContentIdConnectorDefinition1": "GKECCPDefinition",
     "dataConnectorTemplateNameConnectorDefinition1": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnectorDefinition1')))]",
     "_dataConnectorContentIdConnections1": "GKECCPDefinitionConnections",
@@ -231,7 +238,7 @@
                         {
                           "type": "Markdown",
                           "parameters": {
-                            "content": "#### 3. Connect new collectors \nTo enable GKE Logs for Microsoft Sentinel, click the **Add new collector** button, fill in the required information in the context pane, and click **Connect**."
+                            "content": "#### 3. Connect one collector per Pub/Sub subscription\nOne collector routes logs to all six GKE tables. If upgrading from the six-collector configuration, save the connection settings and disconnect all existing GKE collectors for this subscription before connecting the replacement. Keep the GCP subscription and topic in place so messages can queue during the switch. Click **Add new collector**, enter the settings, and click **Connect** once."
                           }
                         },
                         {
@@ -239,28 +246,8 @@
                           "parameters": {
                             "collectors": [
                               {
-                                "name": "Audit Collector",
+                                "name": "GKE Logs Collector",
                                 "tableName": "GKEAudit"
-                              },
-                              {
-                                "name": "API Server Collector",
-                                "tableName": "GKEAPIServer"
-                              },
-                              {
-                                "name": "Scheduler Collector",
-                                "tableName": "GKEScheduler"
-                              },
-                              {
-                                "name": "Controller Manager Collector",
-                                "tableName": "GKEControllerManager"
-                              },
-                              {
-                                "name": "HPA Decision Collector",
-                                "tableName": "GKEHPADecision"
-                              },
-                              {
-                                "name": "Application Collector",
-                                "tableName": "GKEApplication"
                               }
                             ]
                           }
@@ -273,7 +260,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "condition": "[parameters('DeployDataConnector')]"
             },
             {
               "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnectorDefinition1')))]",
@@ -319,7 +307,7 @@
               "properties": {
                 "dataCollectionEndpointId": "[variables('dataCollectionEndpointId1')]",
                 "streamDeclarations": {
-                  "Custom-GKEAuditLogs": {
+                  "Custom-GKELogs": {
                     "columns": [
                       {
                         "name": "insertId",
@@ -360,206 +348,10 @@
                       {
                         "name": "severity",
                         "type": "string"
-                      }
-                    ]
-                  },
-                  "Custom-GKEAPIServerLogs": {
-                    "columns": [
-                      {
-                        "name": "insertId",
-                        "type": "string"
-                      },
-                      {
-                        "name": "logName",
-                        "type": "string"
-                      },
-                      {
-                        "name": "labels",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "jsonPayload",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "severity",
-                        "type": "string"
                       },
                       {
                         "name": "sourceLocation",
                         "type": "dynamic"
-                      },
-                      {
-                        "name": "resource",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "receiveTimestamp",
-                        "type": "datetime"
-                      },
-                      {
-                        "name": "timestamp",
-                        "type": "datetime"
-                      }
-                    ]
-                  },
-                  "Custom-GKESchedulerLogs": {
-                    "columns": [
-                      {
-                        "name": "insertId",
-                        "type": "string"
-                      },
-                      {
-                        "name": "logName",
-                        "type": "string"
-                      },
-                      {
-                        "name": "labels",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "jsonPayload",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "severity",
-                        "type": "string"
-                      },
-                      {
-                        "name": "sourceLocation",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "resource",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "receiveTimestamp",
-                        "type": "datetime"
-                      },
-                      {
-                        "name": "timestamp",
-                        "type": "datetime"
-                      }
-                    ]
-                  },
-                  "Custom-GKEControllerManagerLogs": {
-                    "columns": [
-                      {
-                        "name": "insertId",
-                        "type": "string"
-                      },
-                      {
-                        "name": "logName",
-                        "type": "string"
-                      },
-                      {
-                        "name": "labels",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "jsonPayload",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "severity",
-                        "type": "string"
-                      },
-                      {
-                        "name": "sourceLocation",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "resource",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "receiveTimestamp",
-                        "type": "datetime"
-                      },
-                      {
-                        "name": "timestamp",
-                        "type": "datetime"
-                      }
-                    ]
-                  },
-                  "Custom-GKEHPADecisionLogs": {
-                    "columns": [
-                      {
-                        "name": "insertId",
-                        "type": "string"
-                      },
-                      {
-                        "name": "logName",
-                        "type": "string"
-                      },
-                      {
-                        "name": "labels",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "jsonPayload",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "severity",
-                        "type": "string"
-                      },
-                      {
-                        "name": "sourceLocation",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "resource",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "receiveTimestamp",
-                        "type": "datetime"
-                      },
-                      {
-                        "name": "timestamp",
-                        "type": "datetime"
-                      }
-                    ]
-                  },
-                  "Custom-GKEApplicationLogs": {
-                    "columns": [
-                      {
-                        "name": "insertId",
-                        "type": "string"
-                      },
-                      {
-                        "name": "logName",
-                        "type": "string"
-                      },
-                      {
-                        "name": "labels",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "jsonPayload",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "severity",
-                        "type": "string"
-                      },
-                      {
-                        "name": "sourceLocation",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "resource",
-                        "type": "dynamic"
-                      },
-                      {
-                        "name": "receiveTimestamp",
-                        "type": "datetime"
-                      },
-                      {
-                        "name": "timestamp",
-                        "type": "datetime"
                       },
                       {
                         "name": "textPayload",
@@ -579,7 +371,7 @@
                 "dataFlows": [
                   {
                     "streams": [
-                      "Custom-GKEAuditLogs"
+                      "Custom-GKELogs"
                     ],
                     "destinations": [
                       "clv2ws1"
@@ -589,27 +381,27 @@
                   },
                   {
                     "streams": [
-                      "Custom-GKEAPIServerLogs"
+                      "Custom-GKELogs"
                     ],
                     "destinations": [
                       "clv2ws1"
                     ],
-                    "transformKql": "source | where logName has 'container.googleapis.com%2Fapiserver' | extend TimeGenerated = timestamp, InsertId = tostring(insertId), LogName = tostring(logName), Labels = todynamic(labels), Message = tostring(jsonPayload.message), Pid = tostring(jsonPayload.pid), Severity = tostring(severity), SourceFile = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.file), ''), SourceLine = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.line), ''), ReceiveTimestamp = receiveTimestamp, ClusterName = tostring(resource.labels.cluster_name), ComponentLocation = tostring(resource.labels.component_location), ComponentName = tostring(resource.labels.component_name), Location = tostring(resource.labels.location), ProjectID = tostring(resource.labels.project_id), ComputeResourceName = tostring(labels['compute.googleapis.com/resource_name']) | extend Protocol = iff(Message startswith @'\"HTTP\"', 'HTTP', ''), HttpVerb = extract(@'verb=\\\"(\\w+)\\\"', 1, Message), URI = extract(@'URI=\\\"([^\\\"]+)\\\"', 1, Message), Latency = extract(@'latency=\\\"([^\\\"]+)\\\"', 1, Message), UserAgent = extract(@'userAgent=\\\"([^\\\"]+)\\\"', 1, Message), AuditID = extract(@'audit-ID=\\\"([^\\\"]*)\\\"', 1, Message), SrcIP = extract(@'srcIP=\\\"([^\\\"]+)\\\"', 1, Message), ResponseCode = toint(extract(@'resp=(\\d+)', 1, Message)), ApfPl = extract(@'apf_pl=\\\"([^\\\"]+)\\\"', 1, Message), ApfFs = extract(@'apf_fs=\\\"([^\\\"]+)\\\"', 1, Message), ApfISeats = toint(extract(@'apf_iseats=(\\d+)', 1, Message)), ApfFSeats = toint(extract(@'apf_fseats=(\\d+)', 1, Message)), ApfAdditionalLatency = extract(@'apf_additionalLatency=\\\"([^\\\"]+)\\\"', 1, Message), ApfExecutionTime = extract(@'apf_execution_time=\\\"([^\\\"]+)\\\"', 1, Message) | extend WatchEvent = iff(Message startswith @'\"Starting watch\"', 'Starting watch', ''), WatchPath = extract(@'path=\\\"([^\\\"]+)\\\"', 1, Message), ResourceVersion = extract(@'resourceVersion=\\\"([^\\\"]+)\\\"', 1, Message), WatchLabels = extract(@'labels=\\\"([^\\\"]*)\\\"', 1, Message), WatchFields = extract(@'fields=\\\"([^\\\"]*)\\\"', 1, Message), WatchTimeout = extract(@'timeout=\\\"([^\\\"]+)\\\"', 1, Message) | project-away jsonPayload, sourceLocation, resource, labels,Labels,Message",
+                    "transformKql": "source | where logName has 'container.googleapis.com%2Fapiserver' | project insertId, logName, labels, jsonPayload, severity, sourceLocation, resource, receiveTimestamp, timestamp | extend TimeGenerated = timestamp, InsertId = tostring(insertId), LogName = tostring(logName), Labels = todynamic(labels), Message = tostring(jsonPayload.message), Pid = tostring(jsonPayload.pid), Severity = tostring(severity), SourceFile = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.file), ''), SourceLine = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.line), ''), ReceiveTimestamp = receiveTimestamp, ClusterName = tostring(resource.labels.cluster_name), ComponentLocation = tostring(resource.labels.component_location), ComponentName = tostring(resource.labels.component_name), Location = tostring(resource.labels.location), ProjectID = tostring(resource.labels.project_id), ComputeResourceName = tostring(labels['compute.googleapis.com/resource_name']) | extend Protocol = iff(Message startswith @'\"HTTP\"', 'HTTP', ''), HttpVerb = extract(@'verb=\\\"(\\w+)\\\"', 1, Message), URI = extract(@'URI=\\\"([^\\\"]+)\\\"', 1, Message), Latency = extract(@'latency=\\\"([^\\\"]+)\\\"', 1, Message), UserAgent = extract(@'userAgent=\\\"([^\\\"]+)\\\"', 1, Message), AuditID = extract(@'audit-ID=\\\"([^\\\"]*)\\\"', 1, Message), SrcIP = extract(@'srcIP=\\\"([^\\\"]+)\\\"', 1, Message), ResponseCode = toint(extract(@'resp=(\\d+)', 1, Message)), ApfPl = extract(@'apf_pl=\\\"([^\\\"]+)\\\"', 1, Message), ApfFs = extract(@'apf_fs=\\\"([^\\\"]+)\\\"', 1, Message), ApfISeats = toint(extract(@'apf_iseats=(\\d+)', 1, Message)), ApfFSeats = toint(extract(@'apf_fseats=(\\d+)', 1, Message)), ApfAdditionalLatency = extract(@'apf_additionalLatency=\\\"([^\\\"]+)\\\"', 1, Message), ApfExecutionTime = extract(@'apf_execution_time=\\\"([^\\\"]+)\\\"', 1, Message) | extend WatchEvent = iff(Message startswith @'\"Starting watch\"', 'Starting watch', ''), WatchPath = extract(@'path=\\\"([^\\\"]+)\\\"', 1, Message), ResourceVersion = extract(@'resourceVersion=\\\"([^\\\"]+)\\\"', 1, Message), WatchLabels = extract(@'labels=\\\"([^\\\"]*)\\\"', 1, Message), WatchFields = extract(@'fields=\\\"([^\\\"]*)\\\"', 1, Message), WatchTimeout = extract(@'timeout=\\\"([^\\\"]+)\\\"', 1, Message) | project-away jsonPayload, sourceLocation, resource, labels,Labels,Message",
                     "outputStream": "Microsoft-GKEAPIServer"
                   },
                   {
                     "streams": [
-                      "Custom-GKESchedulerLogs"
+                      "Custom-GKELogs"
                     ],
                     "destinations": [
                       "clv2ws1"
                     ],
-                    "transformKql": "source | where logName has 'container.googleapis.com%2Fscheduler' | extend TimeGenerated = timestamp,InsertId = tostring(insertId), LogName = tostring(logName), Labels = todynamic(labels), Message = tostring(jsonPayload.message), Pid = tostring(jsonPayload.pid), Severity = tostring(severity), SourceFile = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.file), ''), SourceLine = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.line), ''), ReceiveTimestamp = receiveTimestamp, ClusterName = tostring(resource.labels.cluster_name), ComponentLocation = tostring(resource.labels.component_location), ComponentName = tostring(resource.labels.component_name), Location = tostring(resource.labels.location), ProjectID = tostring(resource.labels.project_id), ComputeResourceName = tostring(labels['compute.googleapis.com/resource_name']) | extend Protocol = extract(@'^(\\\"[^\\\"]+\\\")', 1, Message), HttpVerb = extract(@'verb=\\\"(\\w+)\\\"', 1, Message), URI = extract(@'URI=\\\"([^\\\"]+)\\\"', 1, Message), Latency = extract(@'latency=\\\"([^\\\"]+)\\\"', 1, Message), UserAgent = extract(@'userAgent=\\\"([^\\\"]+)\\\"', 1, Message), AuditID = extract(@'audit-ID=\\\"([^\\\"]*)\\\"', 1, Message), SrcIP = extract(@'srcIP=\\\"([^\\\"]+)\\\"', 1, Message), ResponseCode = toint(extract(@'resp=(\\d+)', 1, Message)) | project-away jsonPayload, sourceLocation, resource, labels,Labels,Message",
+                    "transformKql": "source | where logName has 'container.googleapis.com%2Fscheduler' | project insertId, logName, labels, jsonPayload, severity, sourceLocation, resource, receiveTimestamp, timestamp | extend TimeGenerated = timestamp,InsertId = tostring(insertId), LogName = tostring(logName), Labels = todynamic(labels), Message = tostring(jsonPayload.message), Pid = tostring(jsonPayload.pid), Severity = tostring(severity), SourceFile = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.file), ''), SourceLine = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.line), ''), ReceiveTimestamp = receiveTimestamp, ClusterName = tostring(resource.labels.cluster_name), ComponentLocation = tostring(resource.labels.component_location), ComponentName = tostring(resource.labels.component_name), Location = tostring(resource.labels.location), ProjectID = tostring(resource.labels.project_id), ComputeResourceName = tostring(labels['compute.googleapis.com/resource_name']) | extend Protocol = extract(@'^(\\\"[^\\\"]+\\\")', 1, Message), HttpVerb = extract(@'verb=\\\"(\\w+)\\\"', 1, Message), URI = extract(@'URI=\\\"([^\\\"]+)\\\"', 1, Message), Latency = extract(@'latency=\\\"([^\\\"]+)\\\"', 1, Message), UserAgent = extract(@'userAgent=\\\"([^\\\"]+)\\\"', 1, Message), AuditID = extract(@'audit-ID=\\\"([^\\\"]*)\\\"', 1, Message), SrcIP = extract(@'srcIP=\\\"([^\\\"]+)\\\"', 1, Message), ResponseCode = toint(extract(@'resp=(\\d+)', 1, Message)) | project-away jsonPayload, sourceLocation, resource, labels,Labels,Message",
                     "outputStream": "Microsoft-GKEScheduler"
                   },
                   {
                     "streams": [
-                      "Custom-GKEControllerManagerLogs"
+                      "Custom-GKELogs"
                     ],
                     "destinations": [
                       "clv2ws1"
@@ -619,22 +411,22 @@
                   },
                   {
                     "streams": [
-                      "Custom-GKEHPADecisionLogs"
+                      "Custom-GKELogs"
                     ],
                     "destinations": [
                       "clv2ws1"
                     ],
-                    "transformKql": "source | where logName has 'container.googleapis.com%2Fhpa-controller'| extend TimeGenerated = timestamp, InsertId = tostring(insertId), LogName = tostring(logName), Labels = todynamic(labels), Message = tostring(jsonPayload.message), Severity = tostring(severity), SourceFile = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.file), ''), SourceLine = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.line), ''), ReceiveTimestamp = receiveTimestamp, ClusterName = tostring(resource.labels.cluster_name), ComponentLocation = tostring(resource.labels.component_location), ComponentName = tostring(resource.labels.component_name), Location = tostring(resource.labels.location), ProjectID = tostring(resource.labels.project_id), ComputeResourceName = tostring(labels['compute.googleapis.com/resource_name']), VMName = tostring(jsonPayload.instance.vm_name), Zone = tostring(jsonPayload.instance.zone), ActuationLatencySeconds = todouble(jsonPayload.finalRecommendation.actuationLatencySeconds), ActuationTime = todatetime(jsonPayload.finalRecommendation.actuationTime), ConfiguredSize = toint(jsonPayload.finalRecommendation.configuredSize), HPA = tostring(jsonPayload.finalRecommendation.hpa), LeadingMetricIndex = toint(jsonPayload.finalRecommendation.leadingMetricIndex), Replicas = toint(jsonPayload.finalRecommendation.replicas), StartTime = todatetime(jsonPayload.finalRecommendation.startTime),TargetRefkind = jsonPayload['finalRecommendation']['targetRef']['kind'],TargetRefAPIVersion = tostring(jsonPayload.finalRecommendation.targetRef.apiVersion), TargetRefName = tostring(jsonPayload.finalRecommendation.targetRef.name), TopLevelLimit = tostring(jsonPayload.finalRecommendation.topLevelLimit), TopLevelOverride = tostring(jsonPayload.finalRecommendation.topLevelOverride), ResourceType = tostring(resource.type)| project-away jsonPayload, sourceLocation, resource, labels,Labels,Message",
+                    "transformKql": "source | where logName has 'container.googleapis.com%2Fhpa-controller' | project insertId, logName, labels, jsonPayload, severity, sourceLocation, resource, receiveTimestamp, timestamp | extend TimeGenerated = timestamp, InsertId = tostring(insertId), LogName = tostring(logName), Labels = todynamic(labels), Message = tostring(jsonPayload.message), Severity = tostring(severity), SourceFile = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.file), ''), SourceLine = iff(isnotempty(todynamic(sourceLocation)), tostring(sourceLocation.line), ''), ReceiveTimestamp = receiveTimestamp, ClusterName = tostring(resource.labels.cluster_name), ComponentLocation = tostring(resource.labels.component_location), ComponentName = tostring(resource.labels.component_name), Location = tostring(resource.labels.location), ProjectID = tostring(resource.labels.project_id), ComputeResourceName = tostring(labels['compute.googleapis.com/resource_name']), VMName = tostring(jsonPayload.instance.vm_name), Zone = tostring(jsonPayload.instance.zone), ActuationLatencySeconds = todouble(jsonPayload.finalRecommendation.actuationLatencySeconds), ActuationTime = todatetime(jsonPayload.finalRecommendation.actuationTime), ConfiguredSize = toint(jsonPayload.finalRecommendation.configuredSize), HPA = tostring(jsonPayload.finalRecommendation.hpa), LeadingMetricIndex = toint(jsonPayload.finalRecommendation.leadingMetricIndex), Replicas = toint(jsonPayload.finalRecommendation.replicas), StartTime = todatetime(jsonPayload.finalRecommendation.startTime),TargetRefkind = jsonPayload['finalRecommendation']['targetRef']['kind'],TargetRefAPIVersion = tostring(jsonPayload.finalRecommendation.targetRef.apiVersion), TargetRefName = tostring(jsonPayload.finalRecommendation.targetRef.name), TopLevelLimit = tostring(jsonPayload.finalRecommendation.topLevelLimit), TopLevelOverride = tostring(jsonPayload.finalRecommendation.topLevelOverride), ResourceType = tostring(resource.type)| project-away jsonPayload, sourceLocation, resource, labels,Labels,Message",
                     "outputStream": "Microsoft-GKEHPADecision"
                   },
                   {
                     "streams": [
-                      "Custom-GKEApplicationLogs"
+                      "Custom-GKELogs"
                     ],
                     "destinations": [
                       "clv2ws1"
                     ],
-                    "transformKql": "source | where logName has 'stderr' or logName has 'stdout' | extend TimeGenerated = timestamp, InsertId = tostring(insertId), LogName = tostring(logName), Labels = todynamic(labels), Severity = tostring(severity), ReceiveTimestamp = receiveTimestamp, ClusterName = tostring(resource.labels.cluster_name), NamespaceName = tostring(resource.labels.namespace_name), PodName = tostring(resource.labels.pod_name), Location = tostring(resource.labels.location), ContainerName = tostring(resource.labels.container_name), JsonPayload = todynamic(jsonPayload),TextPayload = tostring(textPayload), ProjectID = tostring(resource.labels.project_id), ComputeResourceName = tostring(labels['compute.googleapis.com/resource_name']) | project-away resource, labels,  insertId, logName, receiveTimestamp, severity, timestamp, Labels, jsonPayload,textPayload",
+                    "transformKql": "source | where logName has 'stderr' or logName has 'stdout' | project insertId, logName, labels, jsonPayload, severity, sourceLocation, resource, receiveTimestamp, timestamp, textPayload | extend TimeGenerated = timestamp, InsertId = tostring(insertId), LogName = tostring(logName), Labels = todynamic(labels), Severity = tostring(severity), ReceiveTimestamp = receiveTimestamp, ClusterName = tostring(resource.labels.cluster_name), NamespaceName = tostring(resource.labels.namespace_name), PodName = tostring(resource.labels.pod_name), Location = tostring(resource.labels.location), ContainerName = tostring(resource.labels.container_name), JsonPayload = todynamic(jsonPayload),TextPayload = tostring(textPayload), ProjectID = tostring(resource.labels.project_id), ComputeResourceName = tostring(labels['compute.googleapis.com/resource_name']) | project-away resource, labels,  insertId, logName, receiveTimestamp, severity, timestamp, Labels, jsonPayload,textPayload",
                     "outputStream": "Microsoft-GKEApplication"
                   }
                 ]
@@ -649,7 +441,8 @@
         "packageId": "[variables('_solutionId')]",
         "contentSchemaVersion": "3.0.0",
         "version": "[variables('dataConnectorCCPVersion')]"
-      }
+      },
+      "condition": "[parameters('DeployDataConnector')]"
     },
     {
       "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',variables('_dataConnectorContentIdConnectorDefinition1'))]",
@@ -803,7 +596,7 @@
                 {
                   "type": "Markdown",
                   "parameters": {
-                    "content": "#### 3. Connect new collectors \nTo enable GKE Logs for Microsoft Sentinel, click the **Add new collector** button, fill in the required information in the context pane, and click **Connect**."
+                    "content": "#### 3. Connect one collector per Pub/Sub subscription\nOne collector routes logs to all six GKE tables. If upgrading from the six-collector configuration, save the connection settings and disconnect all existing GKE collectors for this subscription before connecting the replacement. Keep the GCP subscription and topic in place so messages can queue during the switch. Click **Add new collector**, enter the settings, and click **Connect** once."
                   }
                 },
                 {
@@ -811,28 +604,8 @@
                   "parameters": {
                     "collectors": [
                       {
-                        "name": "Audit Collector",
+                        "name": "GKE Logs Collector",
                         "tableName": "GKEAudit"
-                      },
-                      {
-                        "name": "API Server Collector",
-                        "tableName": "GKEAPIServer"
-                      },
-                      {
-                        "name": "Scheduler Collector",
-                        "tableName": "GKEScheduler"
-                      },
-                      {
-                        "name": "Controller Manager Collector",
-                        "tableName": "GKEControllerManager"
-                      },
-                      {
-                        "name": "HPA Decision Collector",
-                        "tableName": "GKEHPADecision"
-                      },
-                      {
-                        "name": "Application Collector",
-                        "tableName": "GKEApplication"
                       }
                     ]
                   }
@@ -845,7 +618,8 @@
             }
           ]
         }
-      }
+      },
+      "condition": "[parameters('DeployDataConnector')]"
     },
     {
       "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnectorDefinition1')))]",
@@ -880,7 +654,8 @@
             }
           ]
         }
-      }
+      },
+      "condition": "[parameters('DeployDataConnector')]"
     },
     {
       "type": "Microsoft.OperationalInsights/workspaces/providers/contentTemplates",
@@ -988,142 +763,7 @@
                 "connectorDefinitionName": "GKECCPDefinition",
                 "dataType": "GKEAudit",
                 "dcrConfig": {
-                  "streamName": "Custom-GKEAuditLogs",
-                  "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
-                  "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
-                },
-                "auth": {
-                  "serviceAccountEmail": "[[parameters('GCPServiceAccountEmail')]",
-                  "projectNumber": "[[parameters('GCPProjectNumber')]",
-                  "workloadIdentityProviderId": "[[parameters('GCPWorkloadIdentityProviderId')]"
-                },
-                "request": {
-                  "projectId": "[[parameters('GCPProjectId')]",
-                  "subscriptionNames": [
-                    "[[parameters('GCPSubscriptionName')]"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'GKEAPIServerLogs', parameters('guidValue'))]",
-              "apiVersion": "2023-02-01-preview",
-              "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-              "location": "[parameters('workspace-location')]",
-              "kind": "GCP",
-              "properties": {
-                "connectorDefinitionName": "GKECCPDefinition",
-                "dataType": "GKEAPIServer",
-                "dcrConfig": {
-                  "streamName": "Custom-GKEAPIServerLogs",
-                  "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
-                  "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
-                },
-                "auth": {
-                  "serviceAccountEmail": "[[parameters('GCPServiceAccountEmail')]",
-                  "projectNumber": "[[parameters('GCPProjectNumber')]",
-                  "workloadIdentityProviderId": "[[parameters('GCPWorkloadIdentityProviderId')]"
-                },
-                "request": {
-                  "projectId": "[[parameters('GCPProjectId')]",
-                  "subscriptionNames": [
-                    "[[parameters('GCPSubscriptionName')]"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'GKESchedulerLogs', parameters('guidValue'))]",
-              "apiVersion": "2023-02-01-preview",
-              "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-              "location": "[parameters('workspace-location')]",
-              "kind": "GCP",
-              "properties": {
-                "connectorDefinitionName": "GKECCPDefinition",
-                "dataType": "GKEScheduler",
-                "dcrConfig": {
-                  "streamName": "Custom-GKESchedulerLogs",
-                  "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
-                  "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
-                },
-                "auth": {
-                  "serviceAccountEmail": "[[parameters('GCPServiceAccountEmail')]",
-                  "projectNumber": "[[parameters('GCPProjectNumber')]",
-                  "workloadIdentityProviderId": "[[parameters('GCPWorkloadIdentityProviderId')]"
-                },
-                "request": {
-                  "projectId": "[[parameters('GCPProjectId')]",
-                  "subscriptionNames": [
-                    "[[parameters('GCPSubscriptionName')]"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'GKEControllerManagerLogs', parameters('guidValue'))]",
-              "apiVersion": "2023-02-01-preview",
-              "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-              "location": "[parameters('workspace-location')]",
-              "kind": "GCP",
-              "properties": {
-                "connectorDefinitionName": "GKECCPDefinition",
-                "dataType": "GKEControllerManager",
-                "dcrConfig": {
-                  "streamName": "Custom-GKEControllerManagerLogs",
-                  "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
-                  "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
-                },
-                "auth": {
-                  "serviceAccountEmail": "[[parameters('GCPServiceAccountEmail')]",
-                  "projectNumber": "[[parameters('GCPProjectNumber')]",
-                  "workloadIdentityProviderId": "[[parameters('GCPWorkloadIdentityProviderId')]"
-                },
-                "request": {
-                  "projectId": "[[parameters('GCPProjectId')]",
-                  "subscriptionNames": [
-                    "[[parameters('GCPSubscriptionName')]"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'GKEHPADecisionLogs', parameters('guidValue'))]",
-              "apiVersion": "2023-02-01-preview",
-              "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-              "location": "[parameters('workspace-location')]",
-              "kind": "GCP",
-              "properties": {
-                "connectorDefinitionName": "GKECCPDefinition",
-                "dataType": "GKEHPADecision",
-                "dcrConfig": {
-                  "streamName": "Custom-GKEHPADecisionLogs",
-                  "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
-                  "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
-                },
-                "auth": {
-                  "serviceAccountEmail": "[[parameters('GCPServiceAccountEmail')]",
-                  "projectNumber": "[[parameters('GCPProjectNumber')]",
-                  "workloadIdentityProviderId": "[[parameters('GCPWorkloadIdentityProviderId')]"
-                },
-                "request": {
-                  "projectId": "[[parameters('GCPProjectId')]",
-                  "subscriptionNames": [
-                    "[[parameters('GCPSubscriptionName')]"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "[[concat(parameters('innerWorkspace'),'/Microsoft.SecurityInsights/', 'GKEApplicationLogs', parameters('guidValue'))]",
-              "apiVersion": "2023-02-01-preview",
-              "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-              "location": "[parameters('workspace-location')]",
-              "kind": "GCP",
-              "properties": {
-                "connectorDefinitionName": "GKECCPDefinition",
-                "dataType": "GKEApplication",
-                "dcrConfig": {
-                  "streamName": "Custom-GKEApplicationLogs",
+                  "streamName": "Custom-GKELogs",
                   "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
                   "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
                 },
@@ -1149,14 +789,15 @@
         "packageId": "[variables('_solutionId')]",
         "contentSchemaVersion": "3.0.0",
         "version": "[variables('dataConnectorCCPVersion')]"
-      }
+      },
+      "condition": "[parameters('DeployDataConnector')]"
     },
     {
       "type": "Microsoft.OperationalInsights/workspaces/providers/contentPackages",
       "apiVersion": "2023-04-01-preview",
       "location": "[parameters('workspace-location')]",
       "properties": {
-        "version": "3.0.2",
+        "version": "3.2.2",
         "kind": "Solution",
         "contentSchemaVersion": "3.0.0",
         "displayName": "Google Kubernetes Engine",
@@ -1205,6 +846,19 @@
         }
       },
       "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/', variables('_solutionId'))]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "pid-3197ebd4-4d66-4aea-8cf1-1cfc5dccca77-partnercenter",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": []
+        }
+      }
     }
   ],
   "outputs": {}
